@@ -35,7 +35,9 @@ namespace {
   constexpr float kWorkspacePillDefaultHeight = Style::baseGlyphSize;
   constexpr float kWorkspaceAnimDurationMs = static_cast<float>(Style::animNormal);
 
-  float workspaceLabelFontSize(bool minimal) { return minimal ? Style::fontSizeBody : Style::fontSizeMini; }
+  [[nodiscard]] constexpr float workspaceLabelFontSize(bool minimal) {
+    return minimal ? Style::fontSizeBody : Style::fontSizeMini;
+  }
 
   [[nodiscard]] FontWeight workspaceFontWeight(FontWeight baseWeight, bool minimal, bool active) {
     if (minimal && active) {
@@ -704,9 +706,10 @@ void WorkspacesWidget::rebuild(Renderer& renderer) {
     m_container->setFrameSize(total, m_indicatorHeight);
   }
 
-  ColorSpec hoverFill = widgetForegroundOr(colorSpecFromRole(ColorRole::OnSurface));
-  hoverFill.alpha = 0.0f;
-  if (!m_minimal || m_barCapsuleSpec.hoverHighlight) {
+  // Only minimal style draws the translucent per-item hover overlay.
+  if (m_minimal && barCapsuleSpec().hoverHighlight) {
+    ColorSpec hoverFill = widgetForegroundOr(colorSpecFromRole(ColorRole::OnSurface));
+    hoverFill.alpha = 0.0f;
     m_hoverOverlay = static_cast<Box*>(m_container->addChild(
         ui::box({
             .fill = hoverFill,
@@ -718,6 +721,7 @@ void WorkspacesWidget::rebuild(Renderer& renderer) {
         })
     ));
   }
+
   if (needsAnimation) {
     startAnimation();
   } else {
@@ -1184,9 +1188,6 @@ void WorkspacesWidget::updateHoverOverlay() {
   Item& hoveredItem = *hoveredIt;
 
   if (!m_minimal) {
-    if (m_hoverOverlay != nullptr) {
-      m_hoverOverlay->setVisible(false);
-    }
     for (auto& item : m_items) {
       if (&item == &hoveredItem) {
         if (item.indicator != nullptr) {
