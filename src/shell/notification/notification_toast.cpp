@@ -1107,7 +1107,12 @@ void NotificationToast::addCardToInstance(Instance& inst, std::size_t entryIndex
         cardState->snapBackAnimId = 0;
       }
       pauseCountdowns(notificationId);
-    } else if (!data.pressed && data.button == BTN_LEFT && cardState->dragging) {
+    } else if (!data.pressed && data.button == BTN_LEFT) {
+      if (!cardState->dragging) {
+        endPopupHover(notificationId, totalDuration, progressBarPtr);
+        return;
+      }
+
       cardState->dragging = false;
       const float scale = notificationUiScale(m_config);
       const float cardHeight = cardState->clipHeight > 0.0f ? cardState->clipHeight : cardState->cardNode->height();
@@ -1198,12 +1203,16 @@ void NotificationToast::addCardToInstance(Instance& inst, std::size_t entryIndex
     if (cardState == nullptr || !cardInput->pressed()) {
       return;
     }
+    if (cardInput->pressedButton() != BTN_LEFT) {
+      return;
+    }
 
     const float deltaX = inst.lastPointerX - cardState->dragStartX;
     const float deltaY = inst.lastPointerY - cardState->dragStartY;
     const float dismissOffset = computeDismissOffset(revealDirection(), deltaX, deltaY);
 
-    if (dismissOffset > 5.0f || cardState->dragging) {
+    constexpr float kDragActivationThreshold = 12.0f;
+    if (dismissOffset > kDragActivationThreshold || cardState->dragging) {
       cardState->dragging = true;
       cardState->currentDragOffset = std::max(0.0f, dismissOffset);
 
@@ -2398,20 +2407,23 @@ InputArea* NotificationToast::buildCard(
   auto viewport = ui::inputArea({});
   viewport->setAcceptedButtons(InputArea::buttonMask({BTN_LEFT, BTN_RIGHT}));
   viewport->setOnClick([this, id = entry.notificationId,
-                        hasDefaultAction = !entry.actions.empty()
-                            && entry.actions.size() >= 2
-                            && entry.actions[0] == "default"](const InputArea::PointerData& data) {
+                        hasDefaultAction =
+                            (!entry.actions.empty() && entry.actions.size() >= 2 && entry.actions[0] == "default")](
+                           const InputArea::PointerData& data
+                       ) {
+    for (const auto& inst : m_instances) {
+      if (auto* state = findCardState(*inst, id); state != nullptr && state->dragging) {
+        return;
+      }
+    }
     if (data.button == BTN_RIGHT) {
       requestClose(id, CloseReason::Dismissed);
-    } else if (data.button == BTN_LEFT && hasDefaultAction) {
-      for (const auto& inst : m_instances) {
-        if (auto* state = findCardState(*inst, id); state != nullptr && state->dragging) {
-          return;
-        }
-      }
+    } else if (data.button == BTN_LEFT) {
       if (m_notifications != nullptr) {
         if (!m_notifications->invokeAction(id, "default", true)) {
-          kLog.warn("notification toast: failed to invoke default action for #{}", id);
+          if (hasDefaultAction) {
+            kLog.warn("notification toast: failed to invoke default action for #{}", id);
+          }
         }
       }
     }
