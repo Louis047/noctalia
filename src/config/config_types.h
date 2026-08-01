@@ -717,6 +717,7 @@ struct NotificationConfig {
   int offsetY = 8;                 // absolute vertical margin from the screen edge
   std::vector<std::string> monitors;
   bool collapseOnDismiss = true;
+  bool enableDragToDismiss = true;
   int historyRetentionHours = 0;
 
   std::vector<NotificationFilterConfig> filters;
