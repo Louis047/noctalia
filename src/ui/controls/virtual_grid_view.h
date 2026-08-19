@@ -1,6 +1,7 @@
 #pragma once
 
 #include "render/scene/node.h"
+#include "shell/tooltip/tooltip_content.h"
 #include "ui/controls/flex.h"
 
 #include <cstddef>
@@ -44,12 +45,32 @@ public:
   // Optional tooltip for the item under the pointer.
   [[nodiscard]] virtual std::string itemTooltip(std::size_t /*index*/) const { return {}; }
 
+  // Optional bounds, relative to a cell, for anchoring an item's tooltip.
+  [[nodiscard]] virtual std::optional<TooltipAnchorInsets>
+  itemTooltipAnchorInsets(std::size_t /*index*/, float /*cellWidth*/, float /*cellHeight*/) const {
+    return std::nullopt;
+  }
+
   // Return true when an overlay consumed the press.
   virtual bool onPointerPress(
       std::size_t /*index*/, float /*cellLocalX*/, float /*cellLocalY*/, float /*cellWidth*/, float /*cellHeight*/
   ) {
     return false;
   }
+
+  // Called while an adapter-consumed primary-button press is held. Returns true
+  // when the adapter changed tile state and needs the visible pool rebound.
+  virtual bool onPointerDrag(
+      std::optional<std::size_t> /*index*/, float /*localX*/, float /*localY*/, float /*cellWidth*/,
+      float /*cellHeight*/
+  ) {
+    return false;
+  }
+
+  // Called when an adapter-consumed primary-button press is released. Returns
+  // true when the visible pool needs rebinding.
+  virtual bool onPointerRelease(std::optional<std::size_t> /*index*/) { return false; }
+  virtual void onPointerCancel() {}
 
   [[nodiscard]] virtual bool overlayHitTest(
       std::size_t /*index*/, float /*cellLocalX*/, float /*cellLocalY*/, float /*cellWidth*/, float /*cellHeight*/
@@ -89,6 +110,9 @@ public:
   void scrollToIndex(std::size_t index);
   void setSelectedIndex(std::optional<std::size_t> index);
   [[nodiscard]] std::optional<std::size_t> selectedIndex() const noexcept { return m_selectedIndex; }
+  // Surface-local anchor point for item `index` (cell center). False when layout
+  // metrics are unavailable or the index is out of range.
+  [[nodiscard]] bool absoluteAnchorForIndex(std::size_t index, float& outX, float& outY) const noexcept;
   // Items to move for a Page Up/Down step (one viewport of rows, at least one item).
   [[nodiscard]] std::size_t pageItemStride() const noexcept;
   // Column count from the most recent layout pass (for keyboard navigation).
@@ -111,11 +135,15 @@ private:
   void onPointerMotion(float localX, float localY);
   void onPointerLeave();
   void onPointerPress(float localX, float localY);
+  void onPointerRelease(float localX, float localY);
   void onPoolTooltipMotion(std::size_t slot, float localX, float localY);
   void onPoolTooltipLeave(std::size_t slot);
   void onSecondaryPointerPress(float localX, float localY);
   [[nodiscard]] std::optional<std::size_t> indexAt(float localX, float localY) const noexcept;
   void cellLocalAt(float localX, float localY, std::size_t index, float& cellLocalX, float& cellLocalY) const noexcept;
+  [[nodiscard]] std::size_t visualCol(std::size_t col) const noexcept {
+    return Style::rtl() ? m_layoutColumns - 1 - col : col;
+  }
   void setOverlayHoveredForIndex(std::size_t index, bool hovered);
 
   ScrollView* m_scroll = nullptr;
@@ -131,11 +159,11 @@ private:
   std::vector<bool> m_slotBoundOverlayHovered;
 
   std::size_t m_columns = 0;
-  float m_minCellWidth = 96.0f;
-  float m_cellHeight = 96.0f;
+  float m_minCellWidth = 96.0F;
+  float m_cellHeight = 96.0F;
   bool m_squareCells = true;
-  float m_columnGap = 4.0f;
-  float m_rowGap = 4.0f;
+  float m_columnGap = 4.0F;
+  float m_rowGap = 4.0F;
   std::size_t m_overscanRows = 2;
 
   std::optional<std::size_t> m_selectedIndex;
@@ -146,12 +174,13 @@ private:
   // Most recent layout snapshot — used by hit-testing and scrollToIndex
   // without rerunning measurement.
   std::size_t m_layoutColumns = 1;
-  float m_cellWidth = 0.0f;
-  float m_cellHeightResolved = 0.0f;
-  float m_virtualWidth = 0.0f;
-  float m_virtualHeight = 0.0f;
+  float m_cellWidth = 0.0F;
+  float m_cellHeightResolved = 0.0F;
+  float m_virtualWidth = 0.0F;
+  float m_virtualHeight = 0.0F;
   std::size_t m_visibleStartIndex = 0;
   std::size_t m_itemCount = 0;
   bool m_pendingScrollToIndex = false;
   std::size_t m_pendingScrollIndex = 0;
+  bool m_adapterPointerCapture = false;
 };

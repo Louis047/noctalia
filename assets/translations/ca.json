@@ -1142,8 +1142,6 @@
         "configure": "Configura",
         "deprecated": "obsolet",
         "empty": "No s'han trobat plugins. Afegeix una font o comprova la xarxa.",
-        "loading": "S'estan carregant els plugins...",
-        "refreshing": "S'estan actualitzant els plugins...",
         "title": "Plugins"
       },
       "settings": {
@@ -2497,10 +2495,6 @@
         "custom-image-colorize": {
           "description": "Tinta la imatge personalitzada amb el color d'icona del widget",
           "label": "Acoloreix la imatge personalitzada"
-        },
-        "custom-labels": {
-          "description": "Mapeja noms de disposició de teclat a etiquetes personalitzades",
-          "label": "Etiquetes personalitzades"
         },
         "detached-panel": {
           "description": "Obre el calaix com a panell flotant amb el seu propi fons en lloc de fusionar-se amb la barra",

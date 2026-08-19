@@ -158,13 +158,13 @@ namespace ui {
         return std::nullopt;
       }
       std::string_view base = *token;
-      float alpha = 1.0f;
+      float alpha = 1.0F;
       if (const auto slash = base.find('/'); slash != std::string_view::npos) {
         const std::string_view alphaText = base.substr(slash + 1);
         base = base.substr(0, slash);
         const auto* end = alphaText.data() + alphaText.size();
         if (const auto res = std::from_chars(alphaText.data(), end, alpha);
-            res.ec != std::errc{} || res.ptr != end || alpha < 0.0f || alpha > 1.0f) {
+            res.ec != std::errc{} || res.ptr != end || alpha < 0.0F || alpha > 1.0F) {
           kLog.warn(
               "ui node '{}': invalid alpha '{}' in color '{}' for prop '{}' (expected 0.0-1.0)", node.type, alphaText,
               *token, key
@@ -333,7 +333,7 @@ namespace ui {
       std::vector<float> out;
       out.reserve(values.size());
       for (double v : values) {
-        out.push_back(std::clamp(static_cast<float>(v), 0.0f, 1.0f));
+        out.push_back(std::clamp(static_cast<float>(v), 0.0F, 1.0F));
       }
       return out;
     }
@@ -394,7 +394,7 @@ namespace ui {
         setSize(rect.width, rect.height);
         if (!children().empty()) {
           children().front()->arrange(
-              renderer, LayoutRect{.x = 0.0f, .y = 0.0f, .width = rect.width, .height = rect.height}
+              renderer, LayoutRect{.x = 0.0F, .y = 0.0F, .width = rect.width, .height = rect.height}
           );
         }
       }
@@ -476,10 +476,11 @@ namespace ui {
       static const std::unordered_set<std::string> kGraph = {"width",   "height",    "flexGrow",   "opacity",
                                                              "visible", "values",    "values2",    "color",
                                                              "color2",  "lineWidth", "fillOpacity"};
-      static const std::unordered_set<std::string> kInput = {"width",    "height",   "flexGrow",    "opacity",
-                                                             "visible",  "value",    "placeholder", "fontSize",
-                                                             "enabled",  "password", "multiline",   "focus",
-                                                             "onChange", "onSubmit", "controlSize", "submitOnEnter"};
+      static const std::unordered_set<std::string> kInput = {"width",       "height",   "flexGrow",    "opacity",
+                                                             "visible",     "value",    "placeholder", "fontSize",
+                                                             "enabled",     "password", "multiline",   "focus",
+                                                             "onChange",    "onSubmit", "controlSize", "submitOnEnter",
+                                                             "frameVisible"};
       static const std::unordered_set<std::string> kMarkdown = {"width",   "height",  "flexGrow",
                                                                 "opacity", "visible", "text"};
       static const std::unordered_set<std::string> kSelect = {"width",       "height",   "flexGrow",      "opacity",
@@ -575,8 +576,8 @@ namespace ui {
     std::string dragEndCallbackName; // last-wired slider onDragEnd target
     std::string imagePath;           // last-applied resolved image source
     std::string lastText;            // markdown source cache - setMarkdown re-parses, only call on change
-    float lastMarkdownScale = 0.0f;  // scale baked into the parsed markdown; a rescale must re-call setMarkdown
-    float imageTargetSize = 0.0f;
+    float lastMarkdownScale = 0.0F;  // scale baked into the parsed markdown; a rescale must re-call setMarkdown
+    float imageTargetSize = 0.0F;
     // Controlled-with-change-detection: a value-driven control (toggle/slider/
     // select) only re-applies its declared value when it differs from the last
     // applied one, so an async re-render never fights an optimistic local change.
@@ -945,7 +946,7 @@ namespace ui {
       node->setVisible(*visible);
     }
     if (const double* opacity = numProp(desired, "opacity")) {
-      const float clamped = std::clamp(static_cast<float>(*opacity), 0.0f, 1.0f);
+      const float clamped = std::clamp(static_cast<float>(*opacity), 0.0F, 1.0F);
       if (desired.type == "drag_source") {
         static_cast<DragSource*>(node)->setSourceOpacity(clamped);
       } else {
@@ -1020,7 +1021,7 @@ namespace ui {
       if (hitSlop == nullptr) {
         warnMistypedOptionalProp(desired, "hitSlop", "a number");
       }
-      zone->setHitSlop(hitSlop != nullptr ? scaled(std::max(0.0, *hitSlop)) : 0.0f);
+      zone->setHitSlop(hitSlop != nullptr ? scaled(std::max(0.0, *hitSlop)) : 0.0F);
     }
 
     if (desired.type == "column"
@@ -1053,7 +1054,7 @@ namespace ui {
       const double* paddingV = numProp(desired, "paddingV");
       const double* paddingH = numProp(desired, "paddingH");
       if (padding != nullptr || paddingV != nullptr || paddingH != nullptr) {
-        const float fallback = padding != nullptr ? scaled(*padding) : 0.0f;
+        const float fallback = padding != nullptr ? scaled(*padding) : 0.0F;
         flex->setPadding(
             paddingV != nullptr ? scaled(*paddingV) : fallback, paddingH != nullptr ? scaled(*paddingH) : fallback
         );
@@ -1129,7 +1130,7 @@ namespace ui {
       }
       if (auto border = parseColor(desired, "border")) {
         const double* borderWidth = numProp(desired, "borderWidth");
-        box->setBorder(*border, borderWidth != nullptr ? scaled(*borderWidth) : 1.0f);
+        box->setBorder(*border, borderWidth != nullptr ? scaled(*borderWidth) : 1.0F);
       }
       if (const double* softness = numProp(desired, "softness")) {
         box->setSoftness(static_cast<float>(*softness));
@@ -1227,7 +1228,7 @@ namespace ui {
         const double* borderWidth = numProp(desired, "borderWidth");
         image->setBorder(*border, borderWidth != nullptr ? scaled(*borderWidth) : Style::borderWidth);
       } else {
-        image->setBorder(clearColorSpec(), 0.0f);
+        image->setBorder(clearColorSpec(), 0.0F);
       }
       const float imageWidth = width != nullptr ? scaled(*width) : node->width();
       const float imageHeight = height != nullptr ? scaled(*height) : imageWidth;
@@ -1237,7 +1238,7 @@ namespace ui {
       }
       if (const std::string* path = strProp(desired, "path")) {
         const std::string resolved = m_resolver ? m_resolver(*path) : *path;
-        const float targetSize = std::max(1.0f, std::max(imageWidth, imageHeight) * 3.0f);
+        const float targetSize = std::max(1.0F, std::max(imageWidth, imageHeight) * 3.0F);
         if (resolved != slot.imagePath || targetSize > slot.imageTargetSize) {
           slot.imagePath = resolved;
           slot.imageTargetSize = targetSize;
@@ -1278,7 +1279,7 @@ namespace ui {
     if (desired.type == "progress") {
       auto* progress = static_cast<ProgressBar*>(node);
       if (const double* value = numProp(desired, "progress")) {
-        progress->setProgress(std::clamp(static_cast<float>(*value), 0.0f, 1.0f));
+        progress->setProgress(std::clamp(static_cast<float>(*value), 0.0F, 1.0F));
       }
       if (auto fill = parseColor(desired, "fill")) {
         progress->setFill(*fill);
@@ -1373,11 +1374,16 @@ namespace ui {
       if (const std::string* onRightClick = strProp(desired, "onRightClick");
           onRightClick != nullptr && *onRightClick != slot.rightCallbackName) {
         slot.rightCallbackName = *onRightClick;
-        button->setOnRightClick([this, name = slot.rightCallbackName]() {
-          if (m_sink) {
-            m_sink(ControlCallback{name});
-          }
-        });
+        button->setOnRightClickWithPointer(
+            [this, name = slot.rightCallbackName](float x, float y, std::uint32_t serial, std::uint32_t time) {
+              if (m_sink) {
+                ControlCallback callback{name};
+                callback.pointerContext =
+                    ControlCallback::PointerContext{.x = x, .y = y, .serial = serial, .time = time};
+                m_sink(callback);
+              }
+            }
+        );
       }
       // Compact hosts (bar widgets): drop the settings-tier control chrome
       // (min-height, wide padding) and hug the content — a bar capsule is
@@ -1385,7 +1391,7 @@ namespace ui {
       // label creation re-applies the text-tier chrome. Explicit width/height
       // below still override.
       if (m_compactControls) {
-        button->setMinHeight(0.0f);
+        button->setMinHeight(0.0F);
         button->setPadding(Style::spaceXs * m_scale);
       }
       if (auto size = parseControlSize(desired)) {
@@ -1420,7 +1426,7 @@ namespace ui {
         graph->setLineWidth(scaled(*lineWidth));
       }
       if (const double* fillOpacity = numProp(desired, "fillOpacity")) {
-        graph->setFillOpacity(std::clamp(static_cast<float>(*fillOpacity), 0.0f, 1.0f));
+        graph->setFillOpacity(std::clamp(static_cast<float>(*fillOpacity), 0.0F, 1.0F));
       }
       graph->setSize(
           width != nullptr ? scaled(*width) : node->width(), height != nullptr ? scaled(*height) : node->height()
@@ -1574,6 +1580,9 @@ namespace ui {
       if (const bool* enabled = boolProp(desired, "enabled")) {
         input->setEnabled(*enabled);
       }
+      if (const bool* frameVisible = boolProp(desired, "frameVisible")) {
+        input->setFrameVisible(*frameVisible);
+      }
       if (const std::string* onChange = strProp(desired, "onChange");
           onChange != nullptr && *onChange != slot.callbackName) {
         slot.callbackName = *onChange;
@@ -1637,7 +1646,7 @@ namespace ui {
       }
       if (auto border = parseColor(desired, "border")) {
         const double* borderWidth = numProp(desired, "borderWidth");
-        scroll->setBorder(*border, borderWidth != nullptr ? scaled(*borderWidth) : 1.0f);
+        scroll->setBorder(*border, borderWidth != nullptr ? scaled(*borderWidth) : 1.0F);
       }
       if (const bool* stickToBottom = boolProp(desired, "stickToBottom")) {
         scroll->setStickToBottom(*stickToBottom);
@@ -1675,7 +1684,7 @@ namespace ui {
       const double* paddingV = numProp(desired, "paddingV");
       const double* paddingH = numProp(desired, "paddingH");
       if (padding != nullptr || paddingV != nullptr || paddingH != nullptr) {
-        const float fallback = padding != nullptr ? scaled(*padding) : 0.0f;
+        const float fallback = padding != nullptr ? scaled(*padding) : 0.0F;
         content->setPadding(
             paddingV != nullptr ? scaled(*paddingV) : fallback, paddingH != nullptr ? scaled(*paddingH) : fallback
         );

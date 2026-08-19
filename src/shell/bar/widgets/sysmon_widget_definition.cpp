@@ -38,6 +38,11 @@ const noctalia::bar::WidgetDefinition<SysmonWidget::Options, SysmonWidgetDefinit
                           .labelKey = "settings.widgets.options.cpu-temp",
                       },
                       {
+                          .value = SysmonStat::CpuFreq,
+                          .configValue = "cpu_freq",
+                          .labelKey = "settings.widgets.options.cpu-freq",
+                      },
+                      {
                           .value = SysmonStat::GpuTemp,
                           .configValue = "gpu_temp",
                           .labelKey = "settings.widgets.options.gpu-temp",
@@ -51,6 +56,11 @@ const noctalia::bar::WidgetDefinition<SysmonWidget::Options, SysmonWidgetDefinit
                           .value = SysmonStat::GpuVram,
                           .configValue = "gpu_vram",
                           .labelKey = "settings.widgets.options.gpu-vram",
+                      },
+                      {
+                          .value = SysmonStat::GpuVramUsed,
+                          .configValue = "gpu_vram_used",
+                          .labelKey = "settings.widgets.options.gpu-vram-used",
                       },
                       {
                           .value = SysmonStat::RamUsed,
@@ -257,7 +267,6 @@ const noctalia::bar::WidgetDefinition<SysmonWidget::Options, SysmonWidgetDefinit
               .presentation =
                   settings::WidgetSettingPresentation{
                       .group = "presentation",
-                      .visibleWhen = hasVisualization,
                   },
           }),
       },
@@ -265,6 +274,15 @@ const noctalia::bar::WidgetDefinition<SysmonWidget::Options, SysmonWidgetDefinit
         if (context.verticalBar && options.visualization == SysmonVisualization::Graph) {
           options.visualization = SysmonVisualization::Gauge;
         }
+      },
+      .glyph = [](const Options& options) {
+        return options.glyph.empty() ? std::string(SysmonWidget::glyphName(options.stat)) : options.glyph;
+      },
+      .validateOptions = [](const Options& options) -> std::optional<std::string> {
+        if (!options.showGlyph && !options.showValue && options.visualization == SysmonVisualization::None) {
+          return "show_glyph, show_value, and visualization cannot all be disabled";
+        }
+        return std::nullopt;
       },
   };
   return definition;

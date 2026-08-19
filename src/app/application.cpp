@@ -116,30 +116,31 @@ namespace {
   }
 
   template <typename Fn> void runStartupPhase(std::string_view label, Fn&& fn) {
-    constexpr float kSlowStartupPhaseDebugMs = 50.0f;
-    constexpr float kSlowStartupPhaseWarnMs = 1000.0f;
+    constexpr float kSlowStartupPhaseDebugMs = 50.0F;
+    constexpr float kSlowStartupPhaseWarnMs = 1000.0F;
 
     const auto start = std::chrono::steady_clock::now();
     try {
       fn();
     } catch (...) {
-      kLog.warn("startup phase {} failed after {:.1f}ms", label, elapsedSince(start));
+      kLog.warn("startup phase {} failed after {:.1F}ms", label, elapsedSince(start));
       throw;
     }
 
     const float ms = elapsedSince(start);
     if (ms >= kSlowStartupPhaseWarnMs) {
-      kLog.warn("startup phase {} took {:.1f}ms", label, ms);
+      kLog.warn("startup phase {} took {:.1F}ms", label, ms);
     } else if (ms >= kSlowStartupPhaseDebugMs) {
-      kLog.debug("startup phase {} took {:.1f}ms", label, ms);
+      kLog.debug("startup phase {} took {:.1F}ms", label, ms);
     }
   }
 } // namespace
 
 Application::Application()
-    : m_lockKeysService(m_wayland), m_gammaService(m_wayland), m_locationService(m_configService, m_httpClient),
-      m_weatherService(m_configService, m_httpClient),
-      m_calendarService(m_configService, m_httpClient, m_secretStore, m_storageKeyProvider, &m_notificationManager) {
+    : m_lockKeysService(m_wayland),
+      m_calendarService(m_configService, m_httpClient, m_secretStore, m_storageKeyProvider, &m_notificationManager),
+      m_gammaService(m_wayland), m_locationService(m_configService, m_httpClient),
+      m_weatherService(m_configService, m_httpClient) {
   m_notificationManager.loadPersistedHistory();
   notify::setInstance(&m_notificationManager);
 
@@ -161,10 +162,19 @@ Application::Application()
     scheduleNotificationShellRefresh();
   });
 
-  m_notificationManager.setStateCallback([this]() { scheduleNotificationShellRefresh(); });
+  m_notificationManager.setStateCallback([this]() {
+    if (m_notificationManager.doNotDisturb()) {
+      m_notificationToast.hideDndSuppressed();
+    }
+    scheduleNotificationShellRefresh();
+  });
 }
 
 Application::~Application() {
+  ColorPickerDialog::setPresenter(nullptr);
+  GlyphPickerDialog::setPresenter(nullptr);
+  FileDialog::setPresenter(nullptr);
+  m_settingsWindow.shutdownDialogPresenter();
   // m_systemMonitor is declared after the plugin hosts, so it is destroyed first; drop the script
   // API's pointer to it here, while both are still alive, or a plugin that used noctalia.cpuCores
   // releases its reference through a dangling pointer as its host is torn down.

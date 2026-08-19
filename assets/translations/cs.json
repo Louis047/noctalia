@@ -1314,8 +1314,6 @@
         "configure": "Konfigurovat",
         "deprecated": "zastaralé",
         "empty": "Žádné povolené pluginy.",
-        "loading": "Načítání pluginů...",
-        "refreshing": "Obnovování pluginů...",
         "remove": "Odebrat plugin",
         "requires": "Vyžaduje: {dependencies}",
         "title": "Pluginy"
@@ -2828,10 +2826,6 @@
         "custom-image-colorize": {
           "description": "Obarvit vlastní obrázek podle nastavení barvy ikony widgetu",
           "label": "Obarvit vlastní obrázek"
-        },
-        "custom-labels": {
-          "description": "Namapovat názvy rozložení klávesnice na vlastní popisky",
-          "label": "Vlastní popisky"
         },
         "detached-panel": {
           "description": "Otevřít zásuvku jako plovoucí panel s vlastním pozadím místo sloučení s lištou",

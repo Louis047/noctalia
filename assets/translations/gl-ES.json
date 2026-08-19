@@ -1376,8 +1376,6 @@
         "delete-confirm-title": "Eliminar \"{name}\"?",
         "deprecated": "obsoleto",
         "empty": "Non hai complementos activados.",
-        "loading": "Cargando complementos...",
-        "refreshing": "Actualizando complementos...",
         "remove": "Eliminar complemento",
         "requires": "Require: {dependencies}",
         "title": "Complementos"
@@ -2947,10 +2945,6 @@
         "custom-image-colorize": {
           "description": "Tinxe a imaxe personalizada co axuste Cor da icona do widget",
           "label": "Colorear imaxe personalizada"
-        },
-        "custom-labels": {
-          "description": "Asigna nomes de distribucións de teclado a etiquetas personalizadas",
-          "label": "Etiquetas personalizadas"
         },
         "detached-panel": {
           "description": "Abre o caixón como panel flotante co seu propio fondo en vez de fusionalo coa barra",
